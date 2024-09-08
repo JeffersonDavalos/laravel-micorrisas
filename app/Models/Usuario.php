@@ -18,6 +18,7 @@ class Usuario extends Model
     // Campos que pueden ser llenados masivamente
     protected $fillable = [
         'id_perfil',
+        'Usuario',
         'nombre',
         'cedula',
         'correo',
