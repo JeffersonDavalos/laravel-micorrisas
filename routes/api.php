@@ -8,3 +8,5 @@ Route::get('/students',function(){
     return 'holi';
 });
 Route::post('/usuarios', [UsuarioController::class, 'index']);
+Route::post('/perfil', [UsuarioController::class, 'perfil']);
+

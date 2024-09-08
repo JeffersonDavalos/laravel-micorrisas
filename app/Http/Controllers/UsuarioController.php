@@ -19,7 +19,6 @@ class UsuarioController extends Controller
     }
 
     /**
-     * Método para manejar la solicitud de obtener usuarios filtrados por usuario y cedula.
      *
      * @param Request $request
      * @return JsonResponse
@@ -30,14 +29,10 @@ class UsuarioController extends Controller
             Log::alert('Entró aquí');
             Log::alert('Datos recibidos: ' . json_encode($request->all()));
 
-            // Enviar los parámetros al servicio
             $usuario = $request->input('usuario');
             $cedula = $request->input('cedula');
 
-            // Llamar al servicio para obtener los usuarios filtrados
             $resultado = $this->usuarioService->obtenerContraseñaPorUsuarioYCedula($usuario, $cedula);
-
-            // Verificar si hubo un error en el servicio
             if (isset($resultado['error'])) {
                 return response()->json(['error' => $resultado['error']], 500);
             }
@@ -45,7 +40,27 @@ class UsuarioController extends Controller
             return response()->json($resultado, 200);
 
         } catch (Exception $e) {
-            // Manejo de errores generales
+            Log::error('Error al obtener usuarios: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Ha ocurrido un error inesperado: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    public function perfil(Request $request): JsonResponse
+    {
+        try {
+            Log::alert('Datos recibidos: ' . json_encode($request->all()));
+
+            $usuario = $request->input('usuario');
+
+            $resultado = $this->usuarioService->obtener_perfil($usuario);
+            if (isset($resultado['error'])) {
+                return response()->json(['error' => $resultado['error']], 500);
+            }
+
+            return response()->json($resultado, 200);
+
+        } catch (Exception $e) {
             Log::error('Error al obtener usuarios: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Ha ocurrido un error inesperado: ' . $e->getMessage()
