@@ -15,9 +15,11 @@ class Usuario extends Model
 
     protected $fillable = [
         'id_perfil',
-        'Usuario',
+        'usuario',
         'nombre',
+        'apellido',
         'cedula',
+        'contraseña',
         'correo',
         'estado',
         'ip',
