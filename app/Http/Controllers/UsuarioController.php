@@ -8,6 +8,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 class UsuarioController extends Controller
 {
@@ -177,5 +181,49 @@ class UsuarioController extends Controller
             ], 500);
         }
     }
+
+    public function predict(Request $request)
+    {
+        Log::alert("Entrando al método predict");
+        Log::alert(collect($request));
+    
+        // Verificar si el campo 'image' está presente en la petición
+        if (!$request->has('image')) {
+            return response()->json(['error' => 'No se ha proporcionado una imagen'], 400);
+        }
+    
+        // Obtener la imagen en base64 desde el request
+        $base64Image = $request->input('image');
+    
+        // Decodificar la imagen base64
+        $imageData = explode(',', $base64Image)[1];
+    
+        // Verificar si la carpeta 'images' en storage/app/public existe, si no crearla
+        if (!Storage::exists('public/images')) {
+            Storage::makeDirectory('public/images');
+        }
+    
+        // Definir la ruta donde se guardará la imagen
+        $imageName = 'image_' . time() . '.png';
+        $imagePath = storage_path('app/public/images/' . $imageName);
+    
+        // Guardar la imagen decodificada
+        File::put($imagePath, base64_decode($imageData));
+    
+        // Llamar al script de Python que realiza la predicción
+        $process = new Process(['C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python312\\python.exe', base_path('predict_micorriza.py'), $imagePath]);
+        $process->run();
+    
+        // Verificar si el proceso falló
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+    
+        // Devolver la salida del script de Python como respuesta
+        return response()->json([
+            'prediccion' => $process->getOutput(),
+        ]);
+    }
+    
     
 }

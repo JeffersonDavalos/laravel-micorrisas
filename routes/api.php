@@ -14,6 +14,7 @@ Route::post('/registrarUsuario', [UsuarioController::class, 'registrarUsuario'])
 Route::post('/actualizarUsuario', [UsuarioController::class, 'actualizarUsuario']);
 Route::get('/listarPerfiles', [UsuarioController::class, 'listarPerfiles']);
 Route::post('/actualizarEstado', [UsuarioController::class, 'actualizarEstado']);
+Route::post('/predict', [UsuarioController::class, 'predict']);
 
 
 
