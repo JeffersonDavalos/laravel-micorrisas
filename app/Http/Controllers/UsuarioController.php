@@ -184,46 +184,36 @@ class UsuarioController extends Controller
 
     public function predict(Request $request)
     {
-        Log::alert("Entrando al método predict");
-        Log::alert(collect($request));
-    
-        // Verificar si el campo 'image' está presente en la petición
         if (!$request->has('image')) {
             return response()->json(['error' => 'No se ha proporcionado una imagen'], 400);
         }
+        try {
+            $base64Image = $request->input('image');
+            $imageData = explode(',', $base64Image)[1];
+            if (!Storage::exists('public/images')) {
+                Storage::makeDirectory('public/images');
+            }
+            $imageName = 'image_' . time() . '.png';
+            $imagePath = storage_path('app/public/images/' . $imageName);
+            File::put($imagePath, base64_decode($imageData));
+            $pythonScript = base_path('predict_micorriza.py');
+            $command = escapeshellcmd('C:\Users\ASUS\AppData\Local\Programs\Python\Python312\python.exe ' . $pythonScript . ' ' . $imagePath);
+            $output = shell_exec($command);
+            if (!$output) {
+                return response()->json(['error' => 'Error al ejecutar el script de predicción'], 500);
+            }
+            $output = mb_convert_encoding($output, 'UTF-8', 'UTF-8');
+            return response()->json([
+                'prediccion' => trim($output),
+            ]);
     
-        // Obtener la imagen en base64 desde el request
-        $base64Image = $request->input('image');
-    
-        // Decodificar la imagen base64
-        $imageData = explode(',', $base64Image)[1];
-    
-        // Verificar si la carpeta 'images' en storage/app/public existe, si no crearla
-        if (!Storage::exists('public/images')) {
-            Storage::makeDirectory('public/images');
+        } catch (\Exception $e) {
+            Log::error('Error en el proceso de predicción: ' . $e->getMessage());
+            return response()->json(['error' => 'Error en el servidor, por favor intente nuevamente'], 500);
         }
-    
-        // Definir la ruta donde se guardará la imagen
-        $imageName = 'image_' . time() . '.png';
-        $imagePath = storage_path('app/public/images/' . $imageName);
-    
-        // Guardar la imagen decodificada
-        File::put($imagePath, base64_decode($imageData));
-    
-        // Llamar al script de Python que realiza la predicción
-        $process = new Process(['C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python312\\python.exe', base_path('predict_micorriza.py'), $imagePath]);
-        $process->run();
-    
-        // Verificar si el proceso falló
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
-    
-        // Devolver la salida del script de Python como respuesta
-        return response()->json([
-            'prediccion' => $process->getOutput(),
-        ]);
     }
+    
+    
     
     
 }
