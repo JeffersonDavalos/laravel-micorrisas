@@ -187,6 +187,7 @@ class UsuarioController extends Controller
         if (!$request->has('image')) {
             return response()->json(['error' => 'No se ha proporcionado una imagen'], 400);
         }
+    
         try {
             $base64Image = $request->input('image');
             $imageData = explode(',', $base64Image)[1];
@@ -202,9 +203,11 @@ class UsuarioController extends Controller
             if (!$output) {
                 return response()->json(['error' => 'Error al ejecutar el script de predicción'], 500);
             }
-            $output = mb_convert_encoding($output, 'UTF-8', 'UTF-8');
+            $outputLines = preg_split('/\r\n|\r|\n/', trim($output));
+            $prediction = end($outputLines); 
+            Log::alert("Predicción final: " . $prediction);
             return response()->json([
-                'prediccion' => trim($output),
+                'prediccion' => trim($prediction),
             ]);
     
         } catch (\Exception $e) {
@@ -212,6 +215,8 @@ class UsuarioController extends Controller
             return response()->json(['error' => 'Error en el servidor, por favor intente nuevamente'], 500);
         }
     }
+    
+    
     
     
     

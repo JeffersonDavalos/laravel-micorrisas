@@ -4,6 +4,10 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 
+# Asegurarse de que la salida estándar use UTF-8
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 try:
     # Cargar el modelo .h5
     model = load_model('C:\\xampp\\htdocs\\laravel_micorisas\\micorriza_detector.h5')
@@ -26,9 +30,10 @@ try:
     # Devolver la clase con la mayor probabilidad
     predicted_class = np.argmax(predictions, axis=1)
 
-    # Salida de la predicción
+    # Salida de la predicción con codificación UTF-8
     print(predicted_class[0])
 
 except Exception as e:
+    # Imprimir error con codificación UTF-8
     print(f"Error al procesar la imagen o hacer la predicción: {e}")
     sys.exit(1)
